@@ -36,7 +36,7 @@ function loadedInit() {
   });
 
   // event handler for airport deselect
-  airportContainer.querySelector('.airport-selector-deselect-all').addEventListener('click', () => handleDeselect);
+  airportContainer.querySelector('.airport-selector-deselect-all').addEventListener('click', () => handleDeselect());
 
 
   const updateOnChecked = (el) => {
