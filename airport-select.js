@@ -4,10 +4,12 @@ function loadedInit() {
   const airportContainer = document.getElementById('airport-selector'); // [1]
   const airportDisplayHook = airportContainer.querySelector('.airport-selector-container .airport-selector');
   const airportDataSelect = airportContainer.querySelector('#airport'); // [0]
-  const airportOptions = buildArrayFromOptions(airportDataSelect.options);
-  let singleChecked = [];
 
-  // remove existing markup in prep
+  // [0] build our array of options
+  const airportOptions = buildArrayFromOptions(airportDataSelect.options);
+  let singlesChecked = [];
+
+  // [1] remove existing markup in prep
   cleanDom(airportDisplayHook, '.grid');
 
   // attach 'all airports'
@@ -25,19 +27,22 @@ function loadedInit() {
   attachToDom(airportDisplayHook, singleMarkup);
 
 
+  // event handler for airport selection
   addEventListener('select.airport', function(e) {
-    updateChecked(e.detail.src);
+    updateOnChecked(e.detail.src);
     if (multiMarkup.indexOf(e.detail.src) !== -1) handleMultiSelection(e);
     else if (singleMarkup.indexOf(e.detail.src) !== -1) handleSingleSelection(e);
     else handleAnySelection();
   });
 
+  // event handler for airport deselect
   airportContainer.querySelector('.airport-selector-deselect-all').addEventListener('click', handleDeselect);
 
 
-  function updateChecked(el) {
+  function updateOnChecked(el) {
     const airportCount = document.getElementById('airport-count');
     const anySelector = document.getElementById('any-airport').parentNode;
+
     // update surrounding markup for selected options
     el.querySelector('input').checked
       ? el.querySelector('label').classList.add('airport-selector__label--checked')
@@ -57,48 +62,48 @@ function loadedInit() {
       anySelector.querySelector('input').checked = true;
       anySelector.querySelector('label').classList.add('airport-selector__label--checked');
     }
-
   }
 
 
   function handleMultiSelection(e) {
     // receives src multi element, triggers appropriate single elements from data attr
-    const selectedInput = e.detail.src.querySelector('input');
-    const selectedCodes = selectedInput.dataset.airportCode.split(',');
+    const multiInput = e.detail.src.querySelector('input');
+    const selectedCodes = multiInput.dataset.airportCode.split(',');
 
-    if (selectedInput.checked) {
-      singleChecked = [...singleChecked, ...selectedCodes];
+    if (multiInput.checked) {
+      singlesChecked = [...singlesChecked, ...selectedCodes];
       singleMarkup.forEach((el) => {
         selectedCodes.forEach((code) => {
           const ref = el.querySelector(`[data-airport-code=${code}]`);
           !!ref && (ref.checked = true);
-          !!ref && updateChecked(el);
+          !!ref && updateOnChecked(el);
         });
       });
     } else {
       singleMarkup.forEach((el) => {
         selectedCodes.forEach((code) => {
-          singleChecked = singleChecked.filter((c) => c !== code);
+          singlesChecked = singlesChecked.filter((c) => c !== code);
           const ref = el.querySelector(`[data-airport-code=${code}]`);
           !!ref && (ref.checked = false);
-          !!ref && updateChecked(el);
+          !!ref && updateOnChecked(el);
         });
       });
     }
   }
 
+
   function handleSingleSelection(e) {
     // receives src single element, triggers appropriate multi element from data attr
-    var single = e.detail.src;
-    const singleCode = single.querySelector('input').dataset.airportCode;
+    var singleInput = e.detail.src;
+    const singleCode = singleInput.querySelector('input').dataset.airportCode;
 
-     single.querySelector('input').checked
-      ? singleChecked = [...singleChecked, singleCode]
-      : singleChecked = singleChecked.filter((c) => c !== singleCode);
+    singleInput.querySelector('input').checked
+      ? singlesChecked = [...singlesChecked, singleCode]
+      : singlesChecked = singlesChecked.filter((c) => c !== singleCode);
 
     multiMarkup.forEach((multi) => {
       const thisMultiCode = multi.querySelector('input').dataset.airportCode.split(',');
-      if (thisMultiCode.every((el) => singleChecked.indexOf(el) !== -1 )) {
+      if (thisMultiCode.every((el) => singlesChecked.indexOf(el) !== -1 )) {
         multi.querySelector('input').checked = true;
         multi.querySelector('label').classList.add('airport-selector__label--checked');
       } else {
@@ -120,26 +125,26 @@ function loadedInit() {
     function clearInputs(el) {
       const ref = el.querySelector('input');
       ref.checked = false;
-      updateChecked(el);
+      updateOnChecked(el);
     }
 
     multiMarkup.forEach((el) => clearInputs(el));
     singleMarkup.forEach((el) => clearInputs(el));
   }
-
 }
 
 
-function buildArrayFromOptions(opt) {
-  const optArray = [...opt];
+function buildArrayFromOptions(opts) {
+  const optArray = [...opts];
   return optArray.reduce(
     (acc, curr) => {
+      // any select
       if (curr.value === '') return acc;
+      // multi select
       if (curr.value.indexOf(',') !== -1) {
-        // multi select
         acc.multi = [...acc.multi, { label: curr.label, value: curr.value, slug: createSlugFromLabel(curr.label) }];
+      // single select
       } else {
-        // single select
         acc.single = [...acc.single, { label: curr.label, value: curr.value, slug: createSlugFromLabel(curr.label) }];
       }
       return acc;
@@ -152,7 +157,8 @@ function buildArrayFromOptions(opt) {
 const generateMarkup = a => {
   const divContain = document.createElement('div');
   divContain.className = 'grid__item tablet--1-3 search-filters__airitem';
-  divContain.innerHTML = `<input type='checkbox'
+  divContain.innerHTML = `
+                  <input type='checkbox'
                     class='js-airportid airport-selector__check'
                     id='${a.slug}'
                     data-airport-code='${a.value}'
@@ -160,8 +166,8 @@ const generateMarkup = a => {
                     >
                   <label class='airport-selector__label' for='${a.slug}'>${a.label}</label>`;
 
-  const event = new CustomEvent('select.airport', { detail: { data: a.slug, src: divContain } });
-  divContain.querySelector('.js-airportid').addEventListener('click', () => dispatchEvent(event));
+  const airportSelect = new CustomEvent('select.airport', { detail: { data: a.slug, src: divContain } });
+  divContain.querySelector('.js-airportid').addEventListener('click', () => dispatchEvent(airportSelect));
 
   return divContain;
 };
