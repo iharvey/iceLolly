@@ -36,10 +36,10 @@ function loadedInit() {
   });
 
   // event handler for airport deselect
-  airportContainer.querySelector('.airport-selector-deselect-all').addEventListener('click', handleDeselect);
+  airportContainer.querySelector('.airport-selector-deselect-all').addEventListener('click', () => handleDeselect);
 
 
-  function updateOnChecked(el) {
+  const updateOnChecked = (el) => {
     const airportCount = document.getElementById('airport-count');
     const anySelector = document.getElementById('any-airport').parentNode;
 
@@ -62,10 +62,10 @@ function loadedInit() {
       anySelector.querySelector('input').checked = true;
       anySelector.querySelector('label').classList.add('airport-selector__label--checked');
     }
-  }
+  };
 
 
-  function handleMultiSelection(e) {
+  const handleMultiSelection = (e) => {
     // receives src multi element, triggers appropriate single elements from data attr
     const multiInput = e.detail.src.querySelector('input');
     const selectedCodes = multiInput.dataset.airportCode.split(',');
@@ -89,10 +89,10 @@ function loadedInit() {
         });
       });
     }
-  }
+  };
 
 
-  function handleSingleSelection(e) {
+  const handleSingleSelection = (e) => {
     // receives src single element, triggers appropriate multi element from data attr
     var singleInput = e.detail.src;
     const singleCode = singleInput.querySelector('input').dataset.airportCode;
@@ -111,30 +111,30 @@ function loadedInit() {
         multi.querySelector('label').classList.remove('airport-selector__label--checked');
       }
     });
-  }
+  };
 
-  function handleAnySelection() {
+  const handleAnySelection = () => {
     clearSelections();
-  }
+  };
 
-  function handleDeselect() {
+  const handleDeselect = () => {
     clearSelections();
-  }
+  };
 
-  function clearSelections() {
-    function clearInputs(el) {
+  const clearSelections = () => {
+    const clearInputs = (el) => {
       const ref = el.querySelector('input');
       ref.checked = false;
       updateOnChecked(el);
-    }
+    };
 
     multiMarkup.forEach((el) => clearInputs(el));
     singleMarkup.forEach((el) => clearInputs(el));
-  }
+  };
 }
 
 
-function buildArrayFromOptions(opts) {
+const buildArrayFromOptions = (opts) => {
   const optArray = [...opts];
   return optArray.reduce(
     (acc, curr) => {
@@ -151,7 +151,7 @@ function buildArrayFromOptions(opts) {
     },
     { multi: [], single: [] }
   );
-}
+};
 
 
 const generateMarkup = a => {
@@ -179,14 +179,14 @@ const cleanDom = (hook, remove) => {
   });
 };
 
-function attachToDom(hook, markup) {
+const attachToDom = (hook, markup) => {
   const grid = document.createElement('div');
   grid.className = 'grid';
   Array.isArray(markup) ? markup.forEach(mk => grid.appendChild(mk)) : grid.appendChild(markup);
   hook.appendChild(grid);
-}
+};
 
-function createSlugFromLabel(q) {
+const createSlugFromLabel = (q) => {
   const regex = /[\s\/]/g;
   return q.replace(regex, '-').trim().toString().toLowerCase();
-}
+};
